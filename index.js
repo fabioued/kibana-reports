@@ -52,13 +52,6 @@ export default function (kibana) {
       const reportsListService = new RecentCsvService(esDriver, esServer);
       const services = { generateService, setupService, downloadService, reportsListService };
 
-      server.injectUiAppVars('reporting', () => {
-        const config = server.config();
-        return {
-          backendRole: config.get('reporting.required_backend_role'),
-        };
-      });
-
       // Add server routes
       setup(server, services);
       generate(server, services);
