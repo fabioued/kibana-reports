@@ -34,7 +34,6 @@ export default function (kibana) {
     config(Joi) {
       return Joi.object({
         enabled: Joi.boolean().default(true),
-        required_backend_role: Joi.string().allow('').default(''),
       }).default();
     },
 
