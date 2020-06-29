@@ -14,9 +14,13 @@
  */
 
 import { DEFAULT_APP_CATEGORIES } from '../../src/core/utils';
-import { GenerateReportService, SetupService, DownloadService, RecentCsvService } from './server/services';
-
-import ReportingRoute from './server/routes/reporting.js';
+import { 
+  GenerateReportService, 
+  SetupService, 
+  DownloadService, 
+  RecentCsvService 
+} from './server/services';
+import { setup, generate, reportList, download } from './server/routes';
 
 export default function (kibana) {
   return new kibana.Plugin({
@@ -34,17 +38,19 @@ export default function (kibana) {
     config(Joi) {
       return Joi.object({
         enabled: Joi.boolean().default(true),
+        required_backend_role: Joi.string().allow('').default(''),
       }).default();
     },
 
     init(server, options) {
+
       const esDriver = server.plugins.elasticsearch;
       const esServer = server.plugins;
-      const reportingService = new GenerateReportService(esDriver, esServer);
+      const generateService = new GenerateReportService(esDriver, esServer);
       const setupService = new SetupService(esDriver, esServer);
       const downloadService = new DownloadService(esDriver, esServer);
-      const recentReportService = new RecentCsvService(esDriver, esServer);
-      const services = { reportingService, setupService, downloadService, recentReportService };
+      const reportsListService = new RecentCsvService(esDriver, esServer);
+      const services = { generateService, setupService, downloadService, reportsListService };
 
       server.injectUiAppVars('reporting', () => {
         const config = server.config();
@@ -53,8 +59,11 @@ export default function (kibana) {
         };
       });
 
-      // Add server routes and initialize the plugin here
-      ReportingRoute(server, options, services);
+      // Add server routes
+      setup(server, services);
+      generate(server, services);
+      reportList(server, services);
+      download(server, services);
     },
   });
 }
