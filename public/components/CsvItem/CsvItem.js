@@ -26,10 +26,10 @@ import {
 } from '@elastic/eui';
 import chrome from 'ui/chrome';
 import { toastNotifications } from 'ui/notify';
-import config from '../../../server/utils/constants';
+import constants  from '../../../server/utils/constants';
 
-const ITEM_BIG   = config.ITEM_BIG;
-const ITEM_SMALL = config.ITEM_SMALL;
+const ITEM_BIG   = constants .ITEM_BIG;
+const ITEM_SMALL = constants .ITEM_SMALL;
 
 export class CsvItem extends React.Component {
   constructor(props) {
