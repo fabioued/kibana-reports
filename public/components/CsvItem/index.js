@@ -1,4 +1,3 @@
-
 /*
  * Copyright 2020 Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
@@ -13,6 +12,5 @@
  * express or implied. See the License for the specific language governing
  * permissions and limitations under the License.
  */
-
 
 export { CsvItem } from './CsvItem';

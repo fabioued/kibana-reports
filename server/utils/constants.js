@@ -1,4 +1,3 @@
-
 /*
  * Copyright 2020 Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
@@ -14,14 +13,14 @@
  * permissions and limitations under the License.
  */
 
-const INDEX_NAME        = 'reporting';
-const MAX_ROWS          = 150000;
-const CLICK_LIMIT       = 5;
-const ITEM_BIG          = { width: '80%' };
-const ITEM_SMALL        = { width: '10%' };
-const CSV_BY_USERS      = 10;
+const INDEX_NAME = 'reporting';
+const MAX_ROWS = 1500000;
+const CLICK_LIMIT = 5;
+const ITEM_BIG = { width: '80%' };
+const ITEM_SMALL = { width: '10%' };
+const CSV_BY_USERS = 10;
 const EMPTY_FIELD_VALUE = ' ';
-const EXCEL_FORMAT      = 'MM/DD/YYYY h:mm:ss a';
+const EXCEL_FORMAT = 'MM/DD/YYYY h:mm:ss a';
 
 module.exports = {
   INDEX_NAME,
@@ -31,5 +30,5 @@ module.exports = {
   ITEM_SMALL,
   CSV_BY_USERS,
   EXCEL_FORMAT,
-  EMPTY_FIELD_VALUE
+  EMPTY_FIELD_VALUE,
 };

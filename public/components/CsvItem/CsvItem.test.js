@@ -23,7 +23,6 @@ import {
   EuiFlexGrid,
   EuiFlexItem,
 } from '@elastic/eui';
-
 import chrome from 'ui/chrome';
 import { toastNotifications } from 'ui/notify';
 import constants from '../../../server/utils/constants';
@@ -43,7 +42,7 @@ export class CsvItem extends React.Component {
 
   // Download the Report
   download = (id) => {
-    const url = chrome.addBasePath('/api/reporting/csv/download/' + id);
+    const url = chrome.addBasePath('/api/reporting/download/' + id);
     const httpClient = this.props.httpClient;
     httpClient
       .get(url)
@@ -164,6 +163,8 @@ export class CsvItem extends React.Component {
           items={this.props.items}
           columns={columns}
           rowProps={getRowProps}
+          sorting={sorting}
+          onChange={onTableChange}
           isSelectable={true}
         />
       </EuiPageContent>

@@ -1,4 +1,3 @@
-
 /*
  * Copyright 2020 Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
@@ -14,16 +13,14 @@
  * permissions and limitations under the License.
  */
 
-export default function(server, services) {
-
+export default function (server, services) {
   const { generateService } = services;
 
   server.route({
-    path: '/api/reporting/generateCsv/{savedsearchId}/{start}/{end}/{username}',
+    path: '/api/reporting/csv/generateReport/{savedsearchId}/{start}/{end}/{username}',
     method: 'GET',
     config: {
       handler: generateService.createPendingReport,
     },
   });
-
 }

@@ -13,4 +13,14 @@
  * permissions and limitations under the License.
  */
 
-export { Main } from './main';
+import React from 'react';
+import { render } from 'enzyme';
+import Error from './Error';
+
+describe('Error component', () => {
+  test('renders', () => {
+    const component = <Error></Error>;
+
+    expect(render(component)).toMatchSnapshot();
+  });
+});

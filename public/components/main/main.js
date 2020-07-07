@@ -1,4 +1,3 @@
-
 /*
  * Copyright 2020 Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
@@ -27,8 +26,7 @@ import {
   EuiSpacer,
   EuiComboBox,
   EuiSuperDatePicker,
-  EuiLoadingContent
-
+  EuiLoadingContent,
 } from '@elastic/eui';
 import chrome from 'ui/chrome';
 
@@ -38,7 +36,7 @@ import { FormattedMessage } from '@kbn/i18n/react';
 import { toastNotifications } from 'ui/notify';
 import dateMath from '@elastic/datemath';
 
-import config from '../../../server/utils/constants';
+import constants from '../../../server/utils/constants';
 
 export class Main extends React.Component {
   constructor(props) {
@@ -76,8 +74,8 @@ export class Main extends React.Component {
   }
 
   onTimeChange = ({ start, end }) => {
-    this.setState(prevState => {
-      const recentlyUsedRanges = prevState.recentlyUsedRanges.filter(recentlyUsedRange => {
+    this.setState((prevState) => {
+      const recentlyUsedRanges = prevState.recentlyUsedRanges.filter((recentlyUsedRange) => {
         const isDuplicate = recentlyUsedRange.start === start && recentlyUsedRange.end === end;
         return !isDuplicate;
       });
@@ -93,7 +91,7 @@ export class Main extends React.Component {
   };
 
   onRefresh = ({ start, end, refreshInterval }) => {
-    return new Promise(resolve => {
+    return new Promise((resolve) => {
       setTimeout(resolve, 100);
     }).then(() => {
       console.log(start, end, refreshInterval);
@@ -115,14 +113,14 @@ export class Main extends React.Component {
     });
   };
 
-  onChange = e => {
+  onChange = (e) => {
     this.setState({
       value: e.target.value,
       query: e.target.value,
     });
   };
 
-  onSelectChange = selectedOptions => {
+  onSelectChange = (selectedOptions) => {
     if (selectedOptions.length === 0) {
       this.setState({
         isDisabled: true,
@@ -139,9 +137,9 @@ export class Main extends React.Component {
     const { httpClient } = this.props;
     httpClient
       .get(chrome.addBasePath('/api/reporting/setup'))
-      .then(res => {
+      .then((res) => {
         if (res.data.ok) {
-          this.getRecentCsv();
+          this.getCsvReports();
         } else {
           if (res.data.resp === 'Authorization Exception') {
             this.setState({
@@ -153,25 +151,25 @@ export class Main extends React.Component {
           }
         }
       })
-      .catch(error => {
+      .catch((error) => {
         toastNotifications.addDanger('An Error Occurred While setting up the plugin');
         throw error;
       });
   };
 
   // get the latest 10 reports by the user.
-  getRecentCsv = () => {
+  getCsvReports = () => {
     const { httpClient } = this.props;
     return httpClient
-      .get(chrome.addBasePath('/api/reporting/reportingList'))
-      .then(res => {
-        this.setState({  recentCsv: res.data.resp });
+      .get(chrome.addBasePath('/api/reporting/csv/reportsList'))
+      .then((res) => {
+        this.setState({ recentCsv: res.data.resp });
         if (this.state.recentCsv.length !== 0) {
           this.setState({ hideCsvItem: false });
         }
         return { ok: true, resp: res.data };
       })
-      .catch(error => {
+      .catch((error) => {
         if (error) {
           toastNotifications.addDanger('An Error Occurred While fetching the recent generated csv');
           return { ok: false, resp: error.message };
@@ -181,14 +179,20 @@ export class Main extends React.Component {
 
   //get the list of saved searches.
   getSavedSearch = () => {
-    const url = chrome.addBasePath('/api/kibana/management/saved_objects/_find?perPage=10000&page=1&fields=id&type=search');
+    const url = chrome.addBasePath(
+      '/api/kibana/management/saved_objects/_find?perPage=10000&page=1&fields=id&type=search'
+    );
     const { httpClient } = this.props;
-    httpClient.get(url).then(res => {
+    httpClient
+      .get(url)
+      .then((res) => {
         const data = res.data.saved_objects;
-        data.map(data => { this.state.options.push({ label: data.meta.title, id: data.id });});
+        data.map((data) => {
+          this.state.options.push({ label: data.meta.title, id: data.id });
+        });
         this.setState({ savedObjects: data });
       })
-      .then(error => {
+      .then((error) => {
         if (error) {
           this.setState({ options: [] });
           toastNotifications.addDanger('An Error Occurred While fetching the Saved Search');
@@ -203,7 +207,7 @@ export class Main extends React.Component {
       hideCsvItem: true,
     });
     this.setState({ refreshButtonIsLoading: true });
-    this.getRecentCsv().then(result => {
+    this.getCsvReports().then((result) => {
       if (result.ok) {
         this.setState({ refreshButtonIsLoading: false });
         toastNotifications.addSuccess('Refreshing done!');
@@ -218,7 +222,7 @@ export class Main extends React.Component {
   };
 
   generateProxy = () => {
-    if (this.state.clickCount >= config.CLICK_LIMIT) {
+    if (this.state.clickCount >= constants.CLICK_LIMIT) {
       this.setState({ isDisabled: true });
       toastNotifications.addDanger('Click Max Number reached. Please retry in 1 mn ');
       return false;
@@ -238,9 +242,9 @@ export class Main extends React.Component {
       throw new Error('Please select a saved search !');
     }
     const savedSearchId = this.state.selectedOptions[0].id;
-    const start         = this.state.start;
-    const end           = this.state.end;
-    const startMoment   = dateMath.parse(start);
+    const start = this.state.start;
+    const end = this.state.end;
+    const startMoment = dateMath.parse(start);
     if (!startMoment || !startMoment.isValid()) {
       toastNotifications.addDanger('Unable to get the start Date');
       throw new Error('Unable to parse start string');
@@ -260,15 +264,24 @@ export class Main extends React.Component {
     }
     const restapiinfo = JSON.parse(sessionStorage.getItem('restapiinfo'));
     let username = 'Guest';
-    if(restapiinfo){
+    if (restapiinfo) {
       username = restapiinfo.user_name;
     }
-    const url = '../api/reporting/generateCsv/' + savedSearchId + '/' + startMoment + '/' + endMoment + '/' + username;
+    console.log('startMoment is ', startMoment);
+    console.log('endMoment is ', endMoment);
+    const url =
+      '../api/reporting/csv/generateReport/' +
+      savedSearchId +
+      '/' +
+      startMoment +
+      '/' +
+      endMoment +
+      '/' +
+      username;
     httpClient.get(url);
     setTimeout(() => {
-      this.getRecentCsv();
+      this.getCsvReports();
     }, 1000);
-
   };
   componentDidMount() {
     this.setup();
@@ -281,9 +294,11 @@ export class Main extends React.Component {
         end: lastSubUrl[0].to,
       });
     }
-    const backendroles    = restapiinfo.user;
-    const requiredBackend = this.props.reportingService.get();
-    if(requiredBackend){
+    //const backendroles    = restapiinfo.user;
+    console.log('restapiinfo is', restapiinfo);
+    if (restapiinfo) {
+      const backendroles = restapiinfo.user;
+      const requiredBackend = this.props.reportingService.get();
       if (!backendroles.includes(requiredBackend)) {
         this.setState({
           authorization: true,

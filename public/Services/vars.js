@@ -1,5 +1,3 @@
-
-
 /*
  * Copyright 2020 Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
@@ -22,5 +20,5 @@ const module = uiModules.get('app/reporting');
 //exposing the backend role from kibana.yml
 
 module.service('reportingService', function (backendRole) {
-  return {  get: () => backendRole };
+  return { get: () => backendRole };
 });

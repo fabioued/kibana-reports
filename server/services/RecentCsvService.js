@@ -1,4 +1,3 @@
-
 /*
  * Copyright 2020 Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
@@ -14,11 +13,15 @@
  * permissions and limitations under the License.
  */
 
-const moment        = require('moment');
-const dateMath      = require('@elastic/datemath');
-const config        = require('../utils/constants');
-const INDEX_NAME    = config.INDEX_NAME;
-const CSV_BY_USERS  = config.CSV_BY_USERS;
+const moment = require('moment');
+const constants = require('../utils/constants');
+const INDEX_NAME = constants.INDEX_NAME;
+const CSV_BY_USERS = constants.CSV_BY_USERS;
+
+const winston = require('winston');
+const logger = winston.createLogger({
+  transports: [new winston.transports.Console()],
+});
 
 export default class RecentCsvService {
   constructor(esDriver, esServer) {
@@ -26,12 +29,12 @@ export default class RecentCsvService {
     this.esServer = esServer;
   }
 
-  // getting the advanced settings of kibana
-  getAdvancedSettings = async _req => {
+  // getting the advanced settings of kibana to retrieve the date format
+  getAdvancedSettings = async (_req) => {
     try {
       const { callWithRequest } = this.esDriver.getCluster('data');
       return await callWithRequest(_req, 'search', {
-        index: ".kibana",
+        index: '.kibana',
         body: {
           query: {
             term: {
@@ -43,15 +46,16 @@ export default class RecentCsvService {
         },
       });
     } catch (err) {
+      logger.error('Reporting - RecentCsvService - getAdvancedSettings:', err);
       return { ok: false, resp: err.message };
     }
   };
 
-  latestReports = async _req => {
+  getReports = async (_req) => {
     try {
-      const histories           = [];
+      const csvReports = [];
       const { callWithRequest } = this.esDriver.getCluster('data');
-      const indexes             = await callWithRequest(_req, 'search', {
+      const reportsDocs = await callWithRequest(_req, 'search', {
         index: INDEX_NAME,
         body: {
           size: CSV_BY_USERS,
@@ -68,34 +72,37 @@ export default class RecentCsvService {
         },
       });
 
-      const advancedSettings  = await this.getAdvancedSettings(_req);
-      const dateFormat        = advancedSettings.hits.hits[0]._source.config.dateFormat;
-      const format            = [];
-      if(dateFormat) format.push(dateFormat);
-      else format.push('MMM D, YYYY @ HH:mm:ss.SSS');
-      for (const history of indexes.hits.hits) {
-        histories.push({
-          id        : history._id,
-          saveSearch: history._source.file,
-          status    : history._source.status,
-          message   : history._source.message,
-          date      : moment(history._source.date,'DD-MM-YYYY HH:mm:ss').format(format.toString()),
-          download  : history._source.downloadLink,
-          userId    : history._source.userId,
-          username  : history._source.username,
+      const advancedSettings = await this.getAdvancedSettings(_req);
+      const dateFormat = advancedSettings.hits.hits[0]._source.config.dateFormat;
+      let format = '';
+      if (dateFormat) format = dateFormat;
+      else format = 'MMM D, YYYY @ HH:mm:ss.SSS';
+      // Formating the data according to the table columns in the frontEnd.
+      for (const report of reportsDocs.hits.hits) {
+        csvReports.push({
+          id: report._id,
+          saveSearch: report._source.file,
+          status: report._source.status,
+          message: report._source.message,
+          date: moment(report._source.date, 'DD-MM-YYYY HH:mm:ss').format(format.toString()),
+          download: report._source.downloadLink,
+          userId: report._source.userId,
+          username: report._source.username,
         });
       }
-      return { ok: true, resp: histories };
+      return { ok: true, resp: csvReports };
     } catch (err) {
+      logger.error('Reporting - RecentCsvService - latestReports:', err);
       return { ok: false, resp: err.message };
     }
   };
 
-  getRecentReports = async _req => {
+  getCsvReportsList = async (_req) => {
     try {
-      const recentsCsv = await this.latestReports(_req);
-      return recentsCsv;
+      const csvReportsList = await this.getReports(_req);
+      return csvReportsList;
     } catch (err) {
+      logger.error('Reporting - RecentCsvService - getRecentReports:', err);
       return { ok: false, resp: err.message };
     }
   };

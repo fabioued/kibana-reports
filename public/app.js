@@ -1,4 +1,3 @@
-
 /*
  * Copyright 2020 Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
@@ -25,20 +24,23 @@ import './Services/vars';
 
 const app = uiModules.get('apps/reporting');
 
-app.config($locationProvider => {
+app.config(($locationProvider) => {
   $locationProvider.html5Mode({
     enabled: false,
     requireBase: false,
     rewriteLinks: false,
   });
 });
-app.config(stateManagementConfigProvider => stateManagementConfigProvider.disable());
+app.config((stateManagementConfigProvider) => stateManagementConfigProvider.disable());
 
-function RootController($scope, $element, $http, reportingService ) {
+function RootController($scope, $element, $http, reportingService) {
   const domNode = $element[0];
 
   // render react to DOM
-  render(<Main title="Reporting" httpClient={$http} reportingService={reportingService} />, domNode);
+  render(
+    <Main title="Reporting" httpClient={$http} reportingService={reportingService} />,
+    domNode
+  );
 
   // unmount react on controller destroy
   $scope.$on('$destroy', () => {

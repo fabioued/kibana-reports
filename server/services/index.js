@@ -1,4 +1,3 @@
-
 /*
  * Copyright 2020 Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
@@ -19,9 +18,4 @@ import SetupService from './SetupService';
 import DownloadService from './DownloadService';
 import RecentCsvService from './RecentCsvService';
 
-export {
-  GenerateReportService,
-  SetupService,
-  DownloadService,
-  RecentCsvService,
-};
+export { GenerateReportService, SetupService, DownloadService, RecentCsvService };

@@ -1,4 +1,3 @@
-
 /*
  * Copyright 2020 Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
@@ -14,8 +13,13 @@
  * permissions and limitations under the License.
  */
 
-const config     = require('../utils/constants');
+const config = require('../utils/constants');
 const INDEX_NAME = config.INDEX_NAME;
+
+const winston = require('winston');
+const logger = winston.createLogger({
+  transports: [new winston.transports.Console()],
+});
 
 export default class DownloadService {
   constructor(esDriver, esServer) {
@@ -24,25 +28,27 @@ export default class DownloadService {
   }
 
   //get a report by id
-  getReport   = async _req => {
+  getReport = async (_req) => {
     const report_id = _req.params.report_id;
     try {
       const { callWithRequest } = this.esDriver.getCluster('data');
-      const report              = await callWithRequest(_req, 'get', { index: INDEX_NAME, id: report_id });
-      const binary              = report._source.binary;
-      const json                = Buffer.from(binary, 'base64').toString('utf-8');
-      const data                = { filename: report._source.file, report: JSON.parse(json) };
+      const report = await callWithRequest(_req, 'get', { index: INDEX_NAME, id: report_id });
+      const binary = report._source.binary;
+      const json = Buffer.from(binary, 'base64').toString('utf-8');
+      const data = { filename: report._source.file, report: JSON.parse(json) };
       return { ok: true, resp: data };
     } catch (err) {
+      logger.error('Reporting - DownloadService - getReport:', err.message);
       return { ok: false, resp: err.message };
     }
   };
 
-  download = async _req => {
+  download = async (_req) => {
     try {
       const recentsCsv = await this.getReport(_req);
       return { ok: true, resp: recentsCsv.resp };
     } catch (err) {
+      logger.error('Reporting - DownloadService - download:', err.message);
       return { ok: false, resp: err.message };
     }
   };

@@ -1,4 +1,3 @@
-
 /*
  * Copyright 2020 Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
@@ -14,8 +13,7 @@
  * permissions and limitations under the License.
  */
 
-export default function(server, services) {
-
+export default function (server, services) {
   const { setupService } = services;
 
   server.route({
@@ -25,5 +23,4 @@ export default function(server, services) {
       handler: setupService.setup,
     },
   });
-
 }

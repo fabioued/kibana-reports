@@ -14,26 +14,26 @@
  */
 
 import { DEFAULT_APP_CATEGORIES } from '../../src/core/utils';
-import { 
-  GenerateReportService, 
-  SetupService, 
-  DownloadService, 
-  RecentCsvService 
+import {
+  GenerateReportService,
+  SetupService,
+  DownloadService,
+  RecentCsvService,
 } from './server/services';
 import { setup, generate, reportList, download } from './server/routes';
 
 export default function (kibana) {
   return new kibana.Plugin({
     name: 'reporting',
+    require: ['elasticsearch'],
     uiExports: {
       app: {
         title: 'Reporting',
-        description: 'Reporting Module',
+        description: 'Kibana Reports',
         main: 'plugins/reporting/app',
         category: DEFAULT_APP_CATEGORIES.kibana,
       },
     },
-    require: ['kibana', 'elasticsearch'],
 
     config(Joi) {
       return Joi.object({
@@ -43,7 +43,6 @@ export default function (kibana) {
     },
 
     init(server, options) {
-
       const esDriver = server.plugins.elasticsearch;
       const esServer = server.plugins;
       const generateService = new GenerateReportService(esDriver, esServer);
@@ -51,6 +50,13 @@ export default function (kibana) {
       const downloadService = new DownloadService(esDriver, esServer);
       const reportsListService = new RecentCsvService(esDriver, esServer);
       const services = { generateService, setupService, downloadService, reportsListService };
+
+      server.injectUiAppVars('reporting', () => {
+        const config = server.config();
+        return {
+          backendRole: config.get('reporting.required_backend_role'),
+        };
+      });
 
       // Add server routes
       setup(server, services);

@@ -1,4 +1,3 @@
-
 /*
  * Copyright 2020 Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
@@ -14,8 +13,13 @@
  * permissions and limitations under the License.
  */
 
-const config     = require('../utils/constants');
+const config = require('../utils/constants');
 const INDEX_NAME = config.INDEX_NAME;
+
+const winston = require('winston');
+const logger = winston.createLogger({
+  transports: [new winston.transports.Console()],
+});
 
 export default class SetupService {
   constructor(esDriver, esServer) {
@@ -24,29 +28,31 @@ export default class SetupService {
   }
 
   //check if the index exist
-  checkIndexExist = async _req => {
+  checkIndexExist = async (_req) => {
     try {
       const { callWithRequest } = this.esDriver.getCluster('data');
-      const indexExist          = await callWithRequest(_req, 'indices.exists', { index: INDEX_NAME });
+      const indexExist = await callWithRequest(_req, 'indices.exists', { index: INDEX_NAME });
       return { ok: true, resp: indexExist };
     } catch (err) {
+      logger.error('Reporting - SetupService - checkIndexExist:', err);
       return { ok: false, resp: err.message };
     }
   };
 
   // get the mapping of the index
-  getMappings = async _req => {
+  getMappings = async (_req) => {
     try {
       const { callWithRequest } = this.esDriver.getCluster('data');
-      const mappings            = await callWithRequest(_req, 'indices.getMapping', { index: INDEX_NAME });
+      const mappings = await callWithRequest(_req, 'indices.getMapping', { index: INDEX_NAME });
       return { ok: true, resp: mappings };
     } catch (err) {
+      logger.error('Reporting - SetupService - getMappings:', err);
       return { ok: false, resp: err.message };
     }
   };
 
   //put the mapping of the index
-  putMapping = async _req => {
+  putMapping = async (_req) => {
     try {
       const { callWithRequest } = this.esDriver.getCluster('data');
       const params = {
@@ -88,24 +94,26 @@ export default class SetupService {
       });
       return { ok: true, resp: mappings };
     } catch (err) {
+      logger.error('Reporting - SetupService - putMapping:', err);
       return { ok: false, resp: err.message };
     }
   };
 
   //create the index and applying the mappings.
-  createReportingIndex = async _req => {
+  createReportingIndex = async (_req) => {
     try {
       const { callWithRequest } = this.esDriver.getCluster('data');
-      const mappings            = await callWithRequest(_req, 'indices.create', { index: INDEX_NAME });
+      const mappings = await callWithRequest(_req, 'indices.create', { index: INDEX_NAME });
       await this.putMapping(_req);
       return { ok: true, resp: mappings };
     } catch (err) {
+      logger.error('Reporting - SetupService - createReportingIndex:', err);
       return { ok: false, resp: err.message };
     }
   };
 
   // check if the index exists. If not create then otherwise do nothing.
-  setup = async _req => {
+  setup = async (_req) => {
     try {
       const indexExist = await this.checkIndexExist(_req);
       if (!indexExist.resp) {
@@ -113,6 +121,7 @@ export default class SetupService {
       }
       return { ok: true, resp: 'done' };
     } catch (err) {
+      logger.error('Reporting - SetupService - setup:', err.message);
       return { ok: false, resp: err.message };
     }
   };
